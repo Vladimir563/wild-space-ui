@@ -1,0 +1,14 @@
+html, body {
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    image-rendering: pixelated; /*добавляем пиксельную обработку*/
+}
+
+#root {
+    display: flex;
+    justify-content: center; /* Центрирование по горизонтали */
+    align-items: center; /* Центрирование по вертикали */
+    height: 100vh;
+    background-color: #A7E6F3;
+}
