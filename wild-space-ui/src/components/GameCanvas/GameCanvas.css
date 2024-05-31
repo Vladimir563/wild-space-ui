@@ -8,3 +8,12 @@
     justify-content: center;
     align-items: center;
 }
+
+.simpleComponent {
+    height: 50px;
+    width: 50px;
+    background-color: blue;
+    position: absolute;
+    margin-top: -150px;
+    margin-left: 100px;
+}

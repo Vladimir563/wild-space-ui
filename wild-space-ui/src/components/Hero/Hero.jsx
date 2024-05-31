@@ -102,15 +102,72 @@ export default class Hero extends Component {
 
       newPosition.top += deltaY;
       newPosition.left += deltaX;
-      newWalkingIndex++;
 
-      this.setState({
-        hero: newHero,
-        position: newPosition,
-        walkingAnimationIndex: newWalkingIndex
-      });
+      // перемещаем персонажа, если на пути нет преград
+      if (!this.checkCollision(newPosition.top, newPosition.left)) {
+        newWalkingIndex++;   
+        this.setState({
+          hero: newHero,
+          position: newPosition,
+          walkingAnimationIndex: newWalkingIndex
+        });
+      }
+
+      this.checkInteraction();
+
     }, this.interval);
   }
+
+  checkCollision = (newX, newY) => {
+    const { hero:{frameSize} } = this.state;
+    const { objects } = this.props;
+    const playerRect = {
+      x: newX,
+      y: newY,
+      width: frameSize.x,
+      height: frameSize.y,
+    };
+
+    return objects.some((obj) => {    
+      const objectRect = {
+        x: obj.x,
+        y: obj.y,
+        width: obj.width,
+        height: obj.height,
+      };
+
+      return this.isColliding(playerRect, objectRect);
+    });
+  };
+
+  checkInteraction = () => {
+    const { hero:{frameSize}, position } = this.state;
+    const player = {
+      x: position.top,
+      y: position.left,
+      width: frameSize.x,
+      height: frameSize.y,
+    };
+    console.log(player);
+    const { objects } = this.props;
+
+    const interactingObject = objects.find((obj) =>
+      this.isColliding(player, obj)
+    );
+
+    if (interactingObject) {
+      console.log(`Interacted with object ${interactingObject.id}!`);
+    }
+  };
+
+  isColliding = (hero, object) => {
+    return (
+      hero.x < object.x + object.width &&
+      hero.x + hero.width > object.x &&
+      hero.y < object.y + object.height &&
+      hero.y + hero.height > object.y
+    );
+  };
 
   handleKeyDown(event) {
     const { key } = event;
