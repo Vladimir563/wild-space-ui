@@ -1,28 +1,32 @@
 import { Component } from 'react';
 import './Hero.css';
-import { SpriteHelper, Vector2 } from '../../helpers/sprite-helper';
-import RootHeroFrames from '../../constants/RootHeroFrames';
-import Move from '../../constants/Move';
+import { SpriteService, Vector2 } from '../../services/sprite-service';
+import { EngineService } from '../../services/engine-service';
+import { Arrows, RootFrames } from '../../services/constants';
 import SpaceHeroImage from '../../assets/astronaut-assets.png';
 
 export default class Hero extends Component {
 
-  constructor(){
+  constructor(/*position, speed*/){
     super();
+
+    this.spriteService = new SpriteService({
+      frameSize: new Vector2(60, 90),
+      hFrames: 4,
+      vFrames: 4,
+      frame: RootFrames.DOWN,
+      scale: 1
+    });
+
     this.state = {
-      hero: new SpriteHelper({
-        frameSize: new Vector2(60, 90),
-        hFrames: 4,
-        vFrames: 4,
-        frame: RootHeroFrames.DOWN_IDLE,
-        scale: 1
-      }),
-      position: { top: 450, left: 400 },
+      heroSprite: this.spriteService.getCharacterSprite(),  
+      position: { x: 450, y: 400 },
       speed: 10,
       walkingAnimationIndex: 0,
       zIndex: 4
     }
 
+    this.engineService = new EngineService();
     this.keysPressed = {};
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.handleKeyUp = this.handleKeyUp.bind(this);
@@ -43,37 +47,20 @@ export default class Hero extends Component {
     }
   }
 
-  makeWalkingFrames = (rootFrame = 0) => {
-    return {
-      frames: [
-        {
-          frame: rootFrame
-        },
-        {
-          frame: rootFrame+1
-        },
-        {
-          frame: rootFrame+2
-        },
-        {
-          frame: rootFrame+3
-        }
-      ]
-    }
-  }
-
   startMovement = () => {
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }
 
     this.intervalId = setInterval(() => {
-      const { hero, walkingAnimationIndex, position, speed } = this.state;
-      let newHero = { ...hero };
+      const { heroSprite, position, speed, walkingAnimationIndex } = this.state;
+      const { objects } = this.props;
+
+      let newHeroSprite = { ...heroSprite };
       let newWalkingIndex = walkingAnimationIndex;
       let newPosition = { ...position };
 
-      if(newWalkingIndex === hero.hFrames) {
+      if(newWalkingIndex === heroSprite.hFrames) {
         newWalkingIndex = 0;
       }
 
@@ -81,20 +68,20 @@ export default class Hero extends Component {
       let deltaX = 0;
       let deltaY = 0;
 
-      if (this.keysPressed[Move.UP]) {
+      if (this.keysPressed[Arrows.UP]) {
         deltaY -= speed;
-        newDirection = RootHeroFrames.UP_IDLE;
-      } else if (this.keysPressed[Move.DOWN]) {
+        newDirection = RootFrames.UP;
+      } else if (this.keysPressed[Arrows.DOWN]) {
         deltaY  += speed;
-        newDirection = RootHeroFrames.DOWN_IDLE;
+        newDirection = RootFrames.DOWN;
       }
 
-      if (this.keysPressed[Move.LEFT]) {
+      if (this.keysPressed[Arrows.LEFT]) {
         deltaX -= speed;
-        newDirection = RootHeroFrames.LEFT_IDLE;
-      } else if (this.keysPressed[Move.RIGHT]) {
+        newDirection = RootFrames.LEFT;
+      } else if (this.keysPressed[Arrows.RIGHT]) {
         deltaX += speed;
-        newDirection = RootHeroFrames.RIGHT_IDLE;
+        newDirection = RootFrames.RIGHT;
       }
 
       if (deltaX !== 0 && deltaY !== 0) {
@@ -104,111 +91,63 @@ export default class Hero extends Component {
       }
 
       const potentialNewPositionX = {
-        top: newPosition.top,
-        left: newPosition.left + deltaX,
+        y: newPosition.y,
+        x: newPosition.x + deltaX,
       };
       const potentialNewPositionY = {
-        top: newPosition.top + deltaY,
-        left: newPosition.left,
+        y: newPosition.y + deltaY,
+        x: newPosition.x,
       };
 
-      // проверяем возможность движения отдельно по X и Y
-      if (!this.checkCollision(potentialNewPositionX)) {
-        newPosition.left += deltaX;
+      // проверяем возможность движения по X
+      if (!this.engineService.checkCollision(potentialNewPositionX, heroSprite.frameSize, speed, objects)) {
+        newPosition.x += deltaX;
       }
 
-      if (!this.checkCollision(potentialNewPositionY)) {
-        newPosition.top += deltaY;
+      // проверяем возможность движения по Y
+      if (!this.engineService.checkCollision(potentialNewPositionY, heroSprite.frameSize, speed, objects)) {
+        newPosition.y += deltaY;
       }
 
       // всегда обновляем анимацию
-      newHero.frame = this.makeWalkingFrames(newDirection).frames[newWalkingIndex].frame;
+      const walkingFrames = this.spriteService.makeWalkingFrames(newDirection);
+      newHeroSprite.frame = walkingFrames.frames[newWalkingIndex].frame;
       newWalkingIndex++;
 
       this.setState({
-        hero: newHero,
-        position: newPosition,
+        heroSprite: newHeroSprite,
         walkingAnimationIndex: newWalkingIndex,
+        position: newPosition
       });
 
     }, this.interval);
   }
-
-  checkInteraction = () => {
-    const { hero, position } = this.state;
-    const { objects } = this.props;
-
-    objects.forEach((obj) => {
-      const interaction_radius = obj.width + obj.width / 2;
-      const objectCenterX = obj.x + obj.width / 2;
-      const objectCenterY = obj.y + obj.height / 2;
-      const playerCenterX = position.left + hero.frameSize.x / 2;
-      const playerCenterY = position.top + hero.frameSize.y / 2;
-
-      const distance = Math.sqrt(
-        Math.pow(objectCenterX - playerCenterX, 2) +
-        Math.pow(objectCenterY - playerCenterY, 2)
-      );
-
-      
-      let isDisplayUI = false;      
-      if (distance <= interaction_radius) {
-        // Вызываем функцию для взаимодействия с объектом
-        this.handleInteraction(obj);
-        isDisplayUI = true;
-      }
-
-      const {toggleDisplayInterface} = this.props;
-      toggleDisplayInterface(isDisplayUI);
-    });
-  };
 
   handleInteraction = ({name}) => {
     // Реализация взаимодействия с объектом
     console.log(`Вы взаимодействуете с объектом ${name}`);
   };
 
-  checkCollision = (newPosition) => {
-    const { hero:{frameSize} } = this.state;
-    const { objects } = this.props;
-    const playerRect = {
-      x: newPosition.left,
-      y: newPosition.top,
-      width: frameSize.x,
-      height: frameSize.y,
-    };
-
-    return objects.some((obj) => {    
-      const objectRect = {
-        x: obj.x,
-        y: obj.y,
-        width: obj.width,
-        height: obj.height,
-      };
-
-      return this.isColliding(playerRect, objectRect);
-    });
-  };
-
-  isColliding = (rect1, rect2) => {
-    const {speed} = this.state;
-    return (
-      rect1.x + speed <= rect2.x + rect2.width &&
-      rect1.x + rect1.width >= rect2.x + speed &&
-      rect1.y + speed <= rect2.y + rect2.height &&
-      rect1.y + rect1.height >= rect2.y + speed
-    );
-  };
-
   handleKeyDown(event) {
     const { key } = event;
+    const { heroSprite, position } = this.state;
+    const { objects } = this.props;
+    const computer = objects.find(x => x.name === 'Computer');
 
-    if(key === 'e'){
-        // Добавляем проверку на взаимодействие
-        this.checkInteraction();
+    if(key === 'e' && this.engineService.couldInteractWith(heroSprite, position, computer)){
+        this.handleInteraction(computer);
+        // открываем редактор кода
+        const {toggleDisplayInterface} = this.props;
+        toggleDisplayInterface(true);
     }
 
-    const arrowPressed = Object.values(Move).includes(key);
+    if(key === 'Escape'){
+      // закрываем редактор кода
+      const {toggleDisplayInterface} = this.props;
+      toggleDisplayInterface(false);
+    }
+
+    const arrowPressed = Object.values(Arrows).includes(key);
 
     if (arrowPressed && !this.keysPressed[key]) {
       this.keysPressed[key] = true;
@@ -218,11 +157,11 @@ export default class Hero extends Component {
 
   handleKeyUp(event) {
     const { key } = event;
-    const arrowPressed = Object.values(Move).includes(key);
+    const arrowPressed = Object.values(Arrows).includes(key);
 
     if (arrowPressed) {
       this.keysPressed[key] = false;
-      const noneArrowsAreHeld = Object.values(Move).every(key => !this.keysPressed[key]);
+      const noneArrowsAreHeld = Object.values(Arrows).every(key => !this.keysPressed[key]);
       if (noneArrowsAreHeld) {
         clearInterval(this.intervalId);
         this.intervalId = null;
@@ -230,24 +169,25 @@ export default class Hero extends Component {
   
         // Сбрасываем анимацию в Idle
         let idleFrame;
-        if (key === Move.UP) idleFrame = RootHeroFrames.UP_IDLE;
-        else if (key === Move.DOWN) idleFrame = RootHeroFrames.DOWN_IDLE;
-        else if (key === Move.LEFT) idleFrame = RootHeroFrames.LEFT_IDLE;
-        else if (key === Move.RIGHT) idleFrame = RootHeroFrames.RIGHT_IDLE;
+        if (key === Arrows.UP) idleFrame = RootFrames.UP;
+        else if (key === Arrows.DOWN) idleFrame = RootFrames.DOWN;
+        else if (key === Arrows.LEFT) idleFrame = RootFrames.LEFT;
+        else if (key === Arrows.RIGHT) idleFrame = RootFrames.RIGHT;
   
-        const newHero = { ...this.state.hero, frame: idleFrame };
-        this.setState({ hero: newHero });
-      } else {
+        const newHeroSprite = { ...this.state.heroSprite, frame: idleFrame };
+        this.setState({ heroSprite: newHeroSprite });
+      }
+      else {
         this.startMovement(); // Продолжаем движение, даже если было нажато другое направление
       }
     }
   }
 
   render() {
-    const {hero, position} = this.state;
-    const backgroundSize = hero.frameSize.x * hero.hFrames;
-    const frameXPos = hero.frameMap.get(hero.frame).x;
-    const frameYPos = hero.frameMap.get(hero.frame).y;
+    const { heroSprite, position } = this.state;
+    const backgroundSize = heroSprite.frameSize.x * heroSprite.hFrames;
+    const frameXPos = heroSprite.frameMap.get(heroSprite.frame).x;
+    const frameYPos = heroSprite.frameMap.get(heroSprite.frame).y;
 
     return (
       <div
@@ -255,12 +195,12 @@ export default class Hero extends Component {
         style={
             {
                 backgroundImage: `url(${SpaceHeroImage})`,
-                width: `${hero.frameSize.x}px`,
-                height: `${hero.frameSize.y}px`,
+                width: `${heroSprite.frameSize.x}px`,
+                height: `${heroSprite.frameSize.y}px`,
                 backgroundSize: `${backgroundSize}px`,
                 backgroundPosition: `${-frameXPos}px ${-frameYPos}px`,
-                top: position.top,
-                left: position.left
+                top: position.y,
+                left: position.x
             }}>
       </div>
       );
