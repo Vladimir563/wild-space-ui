@@ -1,7 +1,8 @@
 import { Component } from 'react';
 import './Hero.css';
 import { SpriteHelper, Vector2 } from '../../helpers/sprite-helper';
-import Move from '../../constants/move';
+import RootHeroFrames from '../../constants/RootHeroFrames';
+import Move from '../../constants/Move';
 import SpaceHeroImage from '../../assets/astronaut-assets.png';
 
 export default class Hero extends Component {
@@ -13,12 +14,13 @@ export default class Hero extends Component {
         frameSize: new Vector2(60, 90),
         hFrames: 4,
         vFrames: 4,
-        frame: Move.DOWN_IDLE,
+        frame: RootHeroFrames.DOWN_IDLE,
         scale: 1
       }),
-      position: { top: 0, left: 0 },
-      speed: 15,
+      position: { top: 450, left: 400 },
+      speed: 10,
       walkingAnimationIndex: 0,
+      zIndex: 4
     }
 
     this.keysPressed = {};
@@ -71,27 +73,28 @@ export default class Hero extends Component {
       let newWalkingIndex = walkingAnimationIndex;
       let newPosition = { ...position };
 
-      let deltaX = 0;
-      let deltaY = 0;
-
       if(newWalkingIndex === hero.hFrames) {
         newWalkingIndex = 0;
       }
 
-      if (this.keysPressed['ArrowUp']) {
+      let newDirection = '';
+      let deltaX = 0;
+      let deltaY = 0;
+
+      if (this.keysPressed[Move.UP]) {
         deltaY -= speed;
-        newHero.frame = this.makeWalkingFrames(Move.UP_IDLE).frames[newWalkingIndex].frame;
-      } else if (this.keysPressed['ArrowDown']) {
+        newDirection = RootHeroFrames.UP_IDLE;
+      } else if (this.keysPressed[Move.DOWN]) {
         deltaY  += speed;
-        newHero.frame = this.makeWalkingFrames(Move.DOWN_IDLE).frames[newWalkingIndex].frame;
+        newDirection = RootHeroFrames.DOWN_IDLE;
       }
 
-      if (this.keysPressed['ArrowLeft']) {
+      if (this.keysPressed[Move.LEFT]) {
         deltaX -= speed;
-        newHero.frame = this.makeWalkingFrames(Move.LEFT_IDLE).frames[newWalkingIndex].frame;
-      } else if (this.keysPressed['ArrowRight']) {
+        newDirection = RootHeroFrames.LEFT_IDLE;
+      } else if (this.keysPressed[Move.RIGHT]) {
         deltaX += speed;
-        newHero.frame = this.makeWalkingFrames(Move.RIGHT_IDLE).frames[newWalkingIndex].frame;
+        newDirection = RootHeroFrames.RIGHT_IDLE;
       }
 
       if (deltaX !== 0 && deltaY !== 0) {
@@ -100,30 +103,77 @@ export default class Hero extends Component {
         deltaY /= Math.sqrt(2);
       }
 
-      newPosition.top += deltaY;
-      newPosition.left += deltaX;
+      const potentialNewPositionX = {
+        top: newPosition.top,
+        left: newPosition.left + deltaX,
+      };
+      const potentialNewPositionY = {
+        top: newPosition.top + deltaY,
+        left: newPosition.left,
+      };
 
-      // перемещаем персонажа, если на пути нет преград
-      if (!this.checkCollision(newPosition.top, newPosition.left)) {
-        newWalkingIndex++;   
-        this.setState({
-          hero: newHero,
-          position: newPosition,
-          walkingAnimationIndex: newWalkingIndex
-        });
+      // проверяем возможность движения отдельно по X и Y
+      if (!this.checkCollision(potentialNewPositionX)) {
+        newPosition.left += deltaX;
       }
 
-      this.checkInteraction();
+      if (!this.checkCollision(potentialNewPositionY)) {
+        newPosition.top += deltaY;
+      }
+
+      // всегда обновляем анимацию
+      newHero.frame = this.makeWalkingFrames(newDirection).frames[newWalkingIndex].frame;
+      newWalkingIndex++;
+
+      this.setState({
+        hero: newHero,
+        position: newPosition,
+        walkingAnimationIndex: newWalkingIndex,
+      });
 
     }, this.interval);
   }
 
-  checkCollision = (newX, newY) => {
+  checkInteraction = () => {
+    const { hero, position } = this.state;
+    const { objects } = this.props;
+
+    objects.forEach((obj) => {
+      const interaction_radius = obj.width + obj.width / 2;
+      const objectCenterX = obj.x + obj.width / 2;
+      const objectCenterY = obj.y + obj.height / 2;
+      const playerCenterX = position.left + hero.frameSize.x / 2;
+      const playerCenterY = position.top + hero.frameSize.y / 2;
+
+      const distance = Math.sqrt(
+        Math.pow(objectCenterX - playerCenterX, 2) +
+        Math.pow(objectCenterY - playerCenterY, 2)
+      );
+
+      
+      let isDisplayUI = false;      
+      if (distance <= interaction_radius) {
+        // Вызываем функцию для взаимодействия с объектом
+        this.handleInteraction(obj);
+        isDisplayUI = true;
+      }
+
+      const {toggleDisplayInterface} = this.props;
+      toggleDisplayInterface(isDisplayUI);
+    });
+  };
+
+  handleInteraction = ({name}) => {
+    // Реализация взаимодействия с объектом
+    console.log(`Вы взаимодействуете с объектом ${name}`);
+  };
+
+  checkCollision = (newPosition) => {
     const { hero:{frameSize} } = this.state;
     const { objects } = this.props;
     const playerRect = {
-      x: newX,
-      y: newY,
+      x: newPosition.left,
+      y: newPosition.top,
       width: frameSize.x,
       height: frameSize.y,
     };
@@ -140,38 +190,27 @@ export default class Hero extends Component {
     });
   };
 
-  checkInteraction = () => {
-    const { hero:{frameSize}, position } = this.state;
-    const player = {
-      x: position.top,
-      y: position.left,
-      width: frameSize.x,
-      height: frameSize.y,
-    };
-    console.log(player);
-    const { objects } = this.props;
-
-    const interactingObject = objects.find((obj) =>
-      this.isColliding(player, obj)
-    );
-
-    if (interactingObject) {
-      console.log(`Interacted with object ${interactingObject.id}!`);
-    }
-  };
-
-  isColliding = (hero, object) => {
+  isColliding = (rect1, rect2) => {
+    const {speed} = this.state;
     return (
-      hero.x < object.x + object.width &&
-      hero.x + hero.width > object.x &&
-      hero.y < object.y + object.height &&
-      hero.y + hero.height > object.y
+      rect1.x + speed <= rect2.x + rect2.width &&
+      rect1.x + rect1.width >= rect2.x + speed &&
+      rect1.y + speed <= rect2.y + rect2.height &&
+      rect1.y + rect1.height >= rect2.y + speed
     );
   };
 
   handleKeyDown(event) {
     const { key } = event;
-    if (!this.keysPressed[key]) {
+
+    if(key === 'e'){
+        // Добавляем проверку на взаимодействие
+        this.checkInteraction();
+    }
+
+    const arrowPressed = Object.values(Move).includes(key);
+
+    if (arrowPressed && !this.keysPressed[key]) {
       this.keysPressed[key] = true;
       this.startMovement();
     }
@@ -179,24 +218,28 @@ export default class Hero extends Component {
 
   handleKeyUp(event) {
     const { key } = event;
-    this.keysPressed[key] = false;
+    const arrowPressed = Object.values(Move).includes(key);
 
-    if (!this.keysPressed['ArrowUp'] && !this.keysPressed['ArrowDown'] && !this.keysPressed['ArrowLeft'] && !this.keysPressed['ArrowRight']) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-      this.setState({ walkingAnimationIndex: 0 });
-
-      // Reset to idle frame
-      let idleFrame;
-      if (key === 'ArrowUp') idleFrame = Move.UP_IDLE;
-      else if (key === 'ArrowDown') idleFrame = Move.DOWN_IDLE;
-      else if (key === 'ArrowLeft') idleFrame = Move.LEFT_IDLE;
-      else if (key === 'ArrowRight') idleFrame = Move.RIGHT_IDLE;
-
-      const newHero = { ...this.state.hero, frame: idleFrame };
-      this.setState({ hero: newHero });
-    } else {
-      this.startMovement(); // Continue movement if any other key is still pressed
+    if (arrowPressed) {
+      this.keysPressed[key] = false;
+      const noneArrowsAreHeld = Object.values(Move).every(key => !this.keysPressed[key]);
+      if (noneArrowsAreHeld) {
+        clearInterval(this.intervalId);
+        this.intervalId = null;
+        this.setState({ walkingAnimationIndex: 0 });
+  
+        // Сбрасываем анимацию в Idle
+        let idleFrame;
+        if (key === Move.UP) idleFrame = RootHeroFrames.UP_IDLE;
+        else if (key === Move.DOWN) idleFrame = RootHeroFrames.DOWN_IDLE;
+        else if (key === Move.LEFT) idleFrame = RootHeroFrames.LEFT_IDLE;
+        else if (key === Move.RIGHT) idleFrame = RootHeroFrames.RIGHT_IDLE;
+  
+        const newHero = { ...this.state.hero, frame: idleFrame };
+        this.setState({ hero: newHero });
+      } else {
+        this.startMovement(); // Продолжаем движение, даже если было нажато другое направление
+      }
     }
   }
 
@@ -216,8 +259,8 @@ export default class Hero extends Component {
                 height: `${hero.frameSize.y}px`,
                 backgroundSize: `${backgroundSize}px`,
                 backgroundPosition: `${-frameXPos}px ${-frameYPos}px`,
-                marginTop: position.top,
-                marginLeft: position.left,
+                top: position.top,
+                left: position.left
             }}>
       </div>
       );

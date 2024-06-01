@@ -1,8 +1,8 @@
 const Move = {
-    DOWN_IDLE: 0,
-    LEFT_IDLE: 4,
-    RIGHT_IDLE: 8,
-    UP_IDLE: 12
-};
+    UP: 'ArrowUp',
+    DOWN: 'ArrowDown',
+    LEFT: 'ArrowLeft',
+    RIGHT: 'ArrowRight',
+}
 
 export default Move;
