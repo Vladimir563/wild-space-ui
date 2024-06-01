@@ -7,9 +7,8 @@ import SpaceHeroImage from '../../assets/astronaut-assets.png';
 
 export default class Hero extends Component {
 
-  constructor(/*position, speed*/){
+  constructor(){
     super();
-
     this.spriteService = new SpriteService({
       frameSize: new Vector2(60, 90),
       hFrames: 4,
@@ -19,11 +18,11 @@ export default class Hero extends Component {
     });
 
     this.state = {
-      heroSprite: this.spriteService.getCharacterSprite(),  
+      heroSprite: this.spriteService.getSprite(),  
       position: { x: 450, y: 400 },
       speed: 10,
       walkingAnimationIndex: 0,
-      zIndex: 4
+      zIndex: 10
     }
 
     this.engineService = new EngineService();
@@ -120,12 +119,18 @@ export default class Hero extends Component {
         position: newPosition
       });
 
+      // TODO: отображение подсказки о взаимодействии (не реализовано)
+      var allInteractableObjects = this.engineService.getAllInteractableObjects(heroSprite, position, objects);
+      if(allInteractableObjects.size > 0) {
+        console.log(allInteractableObjects);
+      }
+      
     }, this.interval);
   }
 
-  handleInteraction = ({name}) => {
-    // Реализация взаимодействия с объектом
-    console.log(`Вы взаимодействуете с объектом ${name}`);
+  handleInteraction = (openEditor) => {  
+    const {toggleDisplayInterface} = this.props;
+    toggleDisplayInterface(openEditor);
   };
 
   handleKeyDown(event) {
@@ -135,16 +140,13 @@ export default class Hero extends Component {
     const computer = objects.find(x => x.name === 'Computer');
 
     if(key === 'e' && this.engineService.couldInteractWith(heroSprite, position, computer)){
-        this.handleInteraction(computer);
-        // открываем редактор кода
-        const {toggleDisplayInterface} = this.props;
-        toggleDisplayInterface(true);
+      // открываем редактор кода
+      this.handleInteraction(true);
     }
 
     if(key === 'Escape'){
       // закрываем редактор кода
-      const {toggleDisplayInterface} = this.props;
-      toggleDisplayInterface(false);
+      this.handleInteraction(false);
     }
 
     const arrowPressed = Object.values(Arrows).includes(key);
@@ -184,7 +186,7 @@ export default class Hero extends Component {
   }
 
   render() {
-    const { heroSprite, position } = this.state;
+    const { heroSprite, position, zIndex } = this.state;
     const backgroundSize = heroSprite.frameSize.x * heroSprite.hFrames;
     const frameXPos = heroSprite.frameMap.get(heroSprite.frame).x;
     const frameYPos = heroSprite.frameMap.get(heroSprite.frame).y;
@@ -200,7 +202,8 @@ export default class Hero extends Component {
                 backgroundSize: `${backgroundSize}px`,
                 backgroundPosition: `${-frameXPos}px ${-frameYPos}px`,
                 top: position.y,
-                left: position.x
+                left: position.x,
+                zIndex: zIndex
             }}>
       </div>
       );

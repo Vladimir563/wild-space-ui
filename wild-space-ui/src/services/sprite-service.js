@@ -19,7 +19,7 @@ export class SpriteService {
         this.buildFrameMap();
     }
 
-    getCharacterSprite() {
+    getSprite() {
         return this;
     }
 

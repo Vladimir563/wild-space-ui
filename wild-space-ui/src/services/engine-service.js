@@ -11,10 +11,10 @@ export class EngineService {
     
         return objects.some((obj) => {    
           const objectRect = {
-            x: obj.x,
-            y: obj.y,
-            width: obj.width,
-            height: obj.height,
+            x: obj.position.x,
+            y: obj.position.y,
+            width: obj.frameSize.x,
+            height: obj.frameSize.y,
           };
     
           return this.isColliding(characterRect, objectRect);
@@ -23,17 +23,17 @@ export class EngineService {
     
     isColliding = (characterRect, objectRect) => {
         return (
-            characterRect.x + characterRect.speed <= objectRect.x + objectRect.width &&
-            characterRect.x + characterRect.width >= objectRect.x + characterRect.speed &&
-            characterRect.y + characterRect.speed <= objectRect.y + objectRect.height &&
+            characterRect.x + characterRect.speed*2.5 <= objectRect.x + objectRect.width &&
+            characterRect.x + characterRect.width >= objectRect.x + characterRect.speed*2.5 &&
+            characterRect.y + characterRect.height - (characterRect.speed*2) <= objectRect.y + objectRect.height &&
             characterRect.y + characterRect.height >= objectRect.y + characterRect.speed
         );
     };
 
     couldInteractWith = (heroSprite, position, obj) => {
-        const interaction_radius = obj.width + obj.width / 2;
-        const objectCenterX = obj.x + obj.width / 2;
-        const objectCenterY = obj.y + obj.height / 2;
+        const interaction_radius = obj.frameSize.x + obj.frameSize.x / 2;
+        const objectCenterX = obj.position.x + obj.frameSize.x / 2;
+        const objectCenterY = obj.position.y + obj.frameSize.y / 2;
         const playerCenterX = position.x + heroSprite.frameSize.x / 2;
         const playerCenterY = position.y + heroSprite.frameSize.y / 2;
   
@@ -48,4 +48,15 @@ export class EngineService {
 
         return false;
       };
+
+    getAllInteractableObjects(heroSprite, position, objects){
+      let objectsForInteraction = new Map();
+      objects.forEach(obj => {
+        if(this.couldInteractWith(heroSprite, position, obj)){
+          objectsForInteraction.set(obj.name, true);
+        }
+      });
+
+      return objectsForInteraction;
+    }
 }
