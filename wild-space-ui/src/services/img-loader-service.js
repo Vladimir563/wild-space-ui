@@ -1,4 +1,5 @@
 import ClrPet from '../assets/clr-pet/Idle.png';
+import Computer from '../assets/environment/computer.png';
 
 export class ImgLoaderService {
     constructor() {
@@ -7,6 +8,7 @@ export class ImgLoaderService {
 
     loadGameObjectImages(){
         this.gameObjectImages.set("ClrPet", ClrPet);
+        this.gameObjectImages.set("Computer", Computer);
 
         return this.gameObjectImages;
     }

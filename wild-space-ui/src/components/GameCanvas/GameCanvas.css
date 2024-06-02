@@ -3,20 +3,10 @@
     height: 100%;
     background-repeat: no-repeat;
     background-position: center;
-    background-size: contain;
+    background-size: cover;
     display: flex;
     justify-content: center;
     align-items: center;
-}
-
-.simpleComponent {
-    height: 50px;
-    width: 50px;
-    background-color: blue;
-    position: absolute;
-    left: 550px;
-    top: 350px;
-    z-index: 1;
 }
 
 .interface {
@@ -24,5 +14,5 @@
     width: 150px;
     background-color: grey;
     position: absolute;
-    z-index: 5;
+    z-index: 10;
 }

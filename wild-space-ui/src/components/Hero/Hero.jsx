@@ -122,7 +122,7 @@ export default class Hero extends Component {
       // TODO: отображение подсказки о взаимодействии (не реализовано)
       var allInteractableObjects = this.engineService.getAllInteractableObjects(heroSprite, position, objects);
       if(allInteractableObjects.size > 0) {
-        console.log(allInteractableObjects);
+        //console.log(allInteractableObjects);
       }
       
     }, this.interval);

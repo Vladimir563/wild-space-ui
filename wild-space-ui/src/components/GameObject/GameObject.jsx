@@ -20,6 +20,15 @@ export default class GameObject extends Component {
         }
     }
 
+    updateFrame = (newFrame) => {
+        this.setState((prevState) => ({
+            sprite: {
+                ...prevState.sprite,
+                frame: newFrame
+            }
+        }));
+    }
+
     render() {
     const { sprite, position, image } = this.state;
     const backgroundSize = sprite.frameSize.x * sprite.hFrames;
