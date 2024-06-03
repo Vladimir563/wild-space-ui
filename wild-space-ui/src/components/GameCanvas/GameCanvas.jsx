@@ -1,5 +1,5 @@
 import './GameCanvas.css';
-import SpaceBackground from '../../assets/space-background.png';
+import SpaceBackground from '../../assets/space-sky.png';
 import Ground from '../Ground';
 import Hero from '../Hero';
 import GameObject from '../GameObject/GameObject';

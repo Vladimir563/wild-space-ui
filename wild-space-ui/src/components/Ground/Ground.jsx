@@ -1,5 +1,5 @@
 import './Ground.css';
-import GroundImage from '../../assets/ground.png';
+import GroundImage from '../../assets/ground-sprites.png';
 
 
 function Ground() {
