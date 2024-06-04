@@ -19,7 +19,7 @@ export default class Hero extends Component {
 
     this.state = {
       heroSprite: this.spriteService.getSprite(),  
-      position: { x: 450, y: 400 },
+      position: { x: 800, y: 400 },
       speed: 10,
       walkingAnimationIndex: 0,
       zIndex: 10

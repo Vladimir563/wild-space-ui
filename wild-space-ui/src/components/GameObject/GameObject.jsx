@@ -16,7 +16,8 @@ export default class GameObject extends Component {
         this.state = {
             sprite: this.spriteService.getSprite(),
             position: this.props.position,
-            image: this.props.image
+            image: this.props.image,
+            bgColor: this.props.bgColor
         }
     }
 
@@ -30,7 +31,7 @@ export default class GameObject extends Component {
     }
 
     render() {
-    const { sprite, position, image } = this.state;
+    const { sprite, position, image, bgColor } = this.state;
     const backgroundSize = sprite.frameSize.x * sprite.hFrames;
     const frameXPos = sprite.frameMap.get(sprite.frame).x;
     const frameYPos = sprite.frameMap.get(sprite.frame).y;
@@ -46,7 +47,8 @@ export default class GameObject extends Component {
                 backgroundSize: `${backgroundSize}px`,
                 backgroundPosition: `${-frameXPos}px ${-frameYPos}px`,
                 top: position.y,
-                left: position.x
+                left: position.x,
+                backgroundColor: bgColor
             }}>
         </div>
         );

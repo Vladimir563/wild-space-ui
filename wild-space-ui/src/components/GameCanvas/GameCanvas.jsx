@@ -2,11 +2,11 @@ import './GameCanvas.css';
 import SpaceBackground from '../../assets/space-sky.png';
 import Ground from '../Ground';
 import Hero from '../Hero';
-import GameObject from '../GameObject/GameObject';
-import AnimatedGameObject from '../AnimatedGameObject'
-import { Vector2 } from '../../services/sprite-service';
 import { Component } from 'react';
 import { ImgLoaderService } from '../../services/img-loader-service';
+import { GameObjectsLoaderService } from '../../services/game-objects-loader-service';
+import GameObject from '../../components/GameObject';
+import AnimatedGameObject from '../../components/AnimatedGameObject'
 
 
 export default class GameCanvas extends Component {
@@ -20,53 +20,69 @@ export default class GameCanvas extends Component {
 
     this.imgLoaderService = new ImgLoaderService();
     this.images = this.imgLoaderService.loadGameObjectImages();
+
+    this.gameObjectsLoaderService = new GameObjectsLoaderService();
+    this.gameObjects = this.gameObjectsLoaderService.loadGameObjects();
+    this.groundWalls = this.gameObjectsLoaderService.loadGroundWalls();
+
+    this.gameComponents = this.buildGameComponents([...this.gameObjects, ...this.groundWalls]);
   }
 
   toggleDisplayInterface(isDisplayInterface) {
     this.setState({ isDisplayInterface });
   }
 
+  buildGameComponents = (gameObjects) => {
+    let id = 0;
+    return gameObjects.map((gameObject) => {
+        if (gameObject.animationInterval > 0) {
+        // возвращаем анимированный объект
+        return (
+            <AnimatedGameObject
+                key={id++}
+                frameSize={gameObject.frameSize}
+                position={gameObject.position}
+                hFrames={gameObject.hFrames}
+                vFrames={gameObject.vFrames}
+                frame={gameObject.frame}
+                scale={gameObject.scale}
+                image={this.images.get(gameObject.name)}
+                animationInterval={gameObject.animationInterval}
+                enableAnimation={gameObject.enableAnimation}
+                bgColor={gameObject.bgColor}/>
+            );
+        } else {
+        // возвращаем просто объект
+        return (    
+            <GameObject
+                key={id++}
+                frameSize={gameObject.frameSize}
+                position={gameObject.position}
+                hFrames={gameObject.hFrames}
+                vFrames={gameObject.vFrames}
+                frame={gameObject.frame}
+                scale={gameObject.scale}
+                image={this.images.get(gameObject.name)}
+                bgColor={gameObject.bgColor}/>
+            );
+        }
+    });
+  }
+
   render(){
     // сделать загрузку всех игровых объектов через .map в return()
-    const objects= [
-      { id: 1, position: new Vector2(550, 350), frameSize: new Vector2(70, 50), hFrames: 1, vFrames: 1, frame: 0, scale: 1, name: "Computer" },
-      { id: 2, position: new Vector2(250, 400), frameSize: new Vector2(40, 40), hFrames: 11, vFrames: 1, frame: 0, scale: 1, name: "ClrPet" }
-    ];
-
     const {isDisplayInterface} = this.state;
-    const crlPet = objects.find((item) => item.name === 'ClrPet');
-    const computer = objects.find((item) => item.name === 'Computer');
-
+    
     return (
       <div
         className="game-canvas"
         style={{backgroundImage: `url(${SpaceBackground})`}}>
           <Ground /> 
           <Hero
-            objects={objects}
+            objects={[...this.gameObjects, ...this.groundWalls]}
             toggleDisplayInterface={this.toggleDisplayInterface}/>
-          <AnimatedGameObject
-            frameSize={crlPet.frameSize}
-            position={crlPet.position}
-            hFrames={crlPet.hFrames}
-            vFrames={crlPet.vFrames}
-            frame={crlPet.frame}
-            scale={crlPet.scale}
-            image={this.images.get(crlPet.name)}
-            animationInterval={80}
-            enableAnimation={false}/>
-
-          <GameObject 
-            frameSize={computer.frameSize}
-            position={computer.position}
-            hFrames={computer.hFrames}
-            vFrames={computer.vFrames}
-            frame={computer.frame}
-            scale={computer.scale}
-            image={this.images.get(computer.name)}/>
           
-
-
+          {this.gameComponents}
 
           <div
             className='interface'
