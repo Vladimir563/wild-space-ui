@@ -35,7 +35,7 @@ export default class GameObject extends Component {
     const backgroundSize = sprite.frameSize.x * sprite.hFrames;
     const frameXPos = sprite.frameMap.get(sprite.frame).x;
     const frameYPos = sprite.frameMap.get(sprite.frame).y;
-
+    
     return (
         <div
         className="game-object"
@@ -47,7 +47,7 @@ export default class GameObject extends Component {
                 backgroundSize: `${backgroundSize}px`,
                 backgroundPosition: `${-frameXPos}px ${-frameYPos}px`,
                 top: position.y,
-                left: position.x,
+                left: position.x + this.props.offsetX,
                 backgroundColor: bgColor
             }}>
         </div>

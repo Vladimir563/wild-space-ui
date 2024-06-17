@@ -79,7 +79,8 @@ export default class AnimatedGameObject extends Component {
                     frame={sprite.frame}
                     scale={sprite.scale}
                     image={image}
-                    ref={(ref) => (this.animatedGameObjectRef = ref)}/>
+                    ref={(ref) => (this.animatedGameObjectRef = ref)}
+                    offsetX={this.props.offsetX}/>
             </div>
             );
         };

@@ -7,7 +7,9 @@ export default class Ground extends Component {
     return (
       <div
         className="ground"
-        style={{backgroundImage: `url(${GroundImage})`}}>
+        style={{
+          backgroundImage: `url(${GroundImage})`
+          }}>
       </div>
     );
   };

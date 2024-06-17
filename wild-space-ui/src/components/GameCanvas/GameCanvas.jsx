@@ -1,5 +1,4 @@
 import './GameCanvas.css';
-import SpaceBackground from '../../assets/space-sky.png';
 import Ground from '../Ground';
 import Hero from '../Hero';
 import { Component } from 'react';
@@ -15,21 +14,51 @@ export default class GameCanvas extends Component {
     super();
     this.state = {
       isDisplayInterface: false,
+      gameObjects: [],
+      groundWalls: [],
+      gameComponents: [],
+      offsetX: 0,
+      oldWidth: window.innerWidth
     };
+
     this.toggleDisplayInterface = this.toggleDisplayInterface.bind(this);
 
     this.imgLoaderService = new ImgLoaderService();
     this.images = this.imgLoaderService.loadGameObjectImages();
+  }
 
-    this.gameObjectsLoaderService = new GameObjectsLoaderService();
-    this.gameObjects = this.gameObjectsLoaderService.loadGameObjects();
-    this.groundWalls = this.gameObjectsLoaderService.loadGroundWalls();
+  componentDidMount() {
+    window.addEventListener('resize', this.handleResize);
+    this.setAllObjects();
+  }
 
-    this.gameComponents = this.buildGameComponents([...this.gameObjects, ...this.groundWalls]);
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.handleResize);
   }
 
   toggleDisplayInterface(isDisplayInterface) {
     this.setState({ isDisplayInterface });
+  }
+
+  handleResize = () => {
+    const newWidth = window.innerWidth;
+    const resizeValue = this.state.oldWidth - newWidth;
+    if(newWidth > 970){
+      this.setState({ offsetX: -resizeValue/2 });
+    }
+  };
+
+  setAllObjects = () => {
+    const gameObjectsLoaderService = new GameObjectsLoaderService();
+    const gameObjects = gameObjectsLoaderService.loadGameObjects();
+    const groundWalls = gameObjectsLoaderService.loadGroundWalls();
+    const gameComponents = this.buildGameComponents([...gameObjects, ...groundWalls]);
+
+    this.setState({
+      gameObjects: gameObjects,
+      groundWalls: groundWalls,
+      gameComponents: gameComponents
+    });  
   }
 
   buildGameComponents = (gameObjects) => {
@@ -49,7 +78,8 @@ export default class GameCanvas extends Component {
                 image={this.images.get(gameObject.name)}
                 animationInterval={gameObject.animationInterval}
                 enableAnimation={gameObject.enableAnimation}
-                bgColor={gameObject.bgColor}/>
+                bgColor={gameObject.bgColor}
+                offsetX={this.state.offsetX}/>
             );
         } else {
         // возвращаем просто объект
@@ -63,7 +93,8 @@ export default class GameCanvas extends Component {
                 frame={gameObject.frame}
                 scale={gameObject.scale}
                 image={this.images.get(gameObject.name)}
-                bgColor={gameObject.bgColor}/>
+                bgColor={gameObject.bgColor}
+                offsetX={this.state.offsetX}/>
             );
         }
     });
@@ -71,18 +102,18 @@ export default class GameCanvas extends Component {
 
   render(){
     // сделать загрузку всех игровых объектов через .map в return()
-    const {isDisplayInterface} = this.state;
-    
+    const {isDisplayInterface, gameObjects, groundWalls} = this.state;
+
+
     return (
-      <div
-        className="game-canvas"
-        style={{backgroundImage: `url(${SpaceBackground})`}}>
+      <div className="game-canvas">
           <Ground /> 
           <Hero
-            objects={[...this.gameObjects, ...this.groundWalls]}
-            toggleDisplayInterface={this.toggleDisplayInterface}/>
+            objects={[...gameObjects, ...groundWalls]}
+            toggleDisplayInterface={this.toggleDisplayInterface}
+            offsetX = {this.state.offsetX}/>
           
-          {this.gameComponents}
+          {this.buildGameComponents([...gameObjects, ...groundWalls])}
 
           <div
             className='interface'
