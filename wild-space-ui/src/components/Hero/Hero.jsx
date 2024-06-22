@@ -14,13 +14,13 @@ export default class Hero extends Component {
       hFrames: 4,
       vFrames: 4,
       frame: RootFrames.DOWN,
-      scale: 1
+      scale: 0.3
     });
 
     this.state = {
       heroSprite: this.spriteService.getSprite(),  
-      position: { x: 1000, y: 400 },
-      speed: 10,
+      position: { x: 150, y: 100 },
+      speed: 3,
       walkingAnimationIndex: 0,
       zIndex: 10
     }
@@ -202,7 +202,7 @@ export default class Hero extends Component {
                 backgroundSize: `${backgroundSize}px`,
                 backgroundPosition: `${-frameXPos}px ${-frameYPos}px`,
                 top: position.y,
-                left: position.x + this.props.offsetX,
+                left: position.x,
                 zIndex: zIndex
             }}>
       </div>

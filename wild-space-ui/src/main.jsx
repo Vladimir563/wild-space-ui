@@ -1,10 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './components/GameCanvas'
+import GameCanvas from './components/GameCanvas'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
+    <GameCanvas />
   </React.StrictMode>,
 )

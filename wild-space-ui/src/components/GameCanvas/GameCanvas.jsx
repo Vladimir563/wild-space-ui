@@ -1,11 +1,11 @@
 import './GameCanvas.css';
-import Ground from '../Ground';
 import Hero from '../Hero';
 import { Component } from 'react';
 import { ImgLoaderService } from '../../services/img-loader-service';
 import { GameObjectsLoaderService } from '../../services/game-objects-loader-service';
 import GameObject from '../../components/GameObject';
 import AnimatedGameObject from '../../components/AnimatedGameObject'
+import Ground from '../../assets/ground.png';
 
 
 export default class GameCanvas extends Component {
@@ -13,52 +13,22 @@ export default class GameCanvas extends Component {
   constructor() {
     super();
     this.state = {
-      isDisplayInterface: false,
-      gameObjects: [],
-      groundWalls: [],
-      gameComponents: [],
-      offsetX: 0,
-      oldWidth: window.innerWidth
+      isDisplayInterface: false
     };
 
     this.toggleDisplayInterface = this.toggleDisplayInterface.bind(this);
 
     this.imgLoaderService = new ImgLoaderService();
     this.images = this.imgLoaderService.loadGameObjectImages();
-  }
 
-  componentDidMount() {
-    window.addEventListener('resize', this.handleResize);
-    this.setAllObjects();
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.handleResize);
+    const gameObjectsLoaderService = new GameObjectsLoaderService();
+    this.gameObjects = gameObjectsLoaderService.loadGameObjects();
+    this.groundWalls = gameObjectsLoaderService.loadGroundWalls();
+    this.gameComponents = this.buildGameComponents([...this.gameObjects, ...this.groundWalls]);
   }
 
   toggleDisplayInterface(isDisplayInterface) {
     this.setState({ isDisplayInterface });
-  }
-
-  handleResize = () => {
-    const newWidth = window.innerWidth;
-    const resizeValue = this.state.oldWidth - newWidth;
-    if(newWidth > 970){
-      this.setState({ offsetX: -resizeValue/2 });
-    }
-  };
-
-  setAllObjects = () => {
-    const gameObjectsLoaderService = new GameObjectsLoaderService();
-    const gameObjects = gameObjectsLoaderService.loadGameObjects();
-    const groundWalls = gameObjectsLoaderService.loadGroundWalls();
-    const gameComponents = this.buildGameComponents([...gameObjects, ...groundWalls]);
-
-    this.setState({
-      gameObjects: gameObjects,
-      groundWalls: groundWalls,
-      gameComponents: gameComponents
-    });  
   }
 
   buildGameComponents = (gameObjects) => {
@@ -78,8 +48,7 @@ export default class GameCanvas extends Component {
                 image={this.images.get(gameObject.name)}
                 animationInterval={gameObject.animationInterval}
                 enableAnimation={gameObject.enableAnimation}
-                bgColor={gameObject.bgColor}
-                offsetX={this.state.offsetX}/>
+                bgColor={gameObject.bgColor}/>
             );
         } else {
         // возвращаем просто объект
@@ -93,8 +62,7 @@ export default class GameCanvas extends Component {
                 frame={gameObject.frame}
                 scale={gameObject.scale}
                 image={this.images.get(gameObject.name)}
-                bgColor={gameObject.bgColor}
-                offsetX={this.state.offsetX}/>
+                bgColor={gameObject.bgColor}/>
             );
         }
     });
@@ -102,18 +70,19 @@ export default class GameCanvas extends Component {
 
   render(){
     // сделать загрузку всех игровых объектов через .map в return()
-    const {isDisplayInterface, gameObjects, groundWalls} = this.state;
+    const {isDisplayInterface, gameObjects, groundWalls, newGroundWidth} = this.state;
 
 
     return (
-      <div className="game-canvas">
-          <Ground /> 
+      <div className="game-canvas"
+        style={{
+          backgroundImage: `url("${Ground}")`
+        }}>
           <Hero
-            objects={[...gameObjects, ...groundWalls]}
-            toggleDisplayInterface={this.toggleDisplayInterface}
-            offsetX = {this.state.offsetX}/>
+            objects={[...this.gameObjects, ...this.groundWalls]}
+            toggleDisplayInterface={this.toggleDisplayInterface}/>
           
-          {this.buildGameComponents([...gameObjects, ...groundWalls])}
+          {this.gameComponents}
 
           <div
             className='interface'
