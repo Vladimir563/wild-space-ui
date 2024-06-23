@@ -13,10 +13,12 @@ export default class GameCanvas extends Component {
   constructor() {
     super();
     this.state = {
-      isDisplayInterface: false
+      isDisplayInterface: false,
+      isDisplayInteractWindow: false
     };
 
     this.toggleDisplayInterface = this.toggleDisplayInterface.bind(this);
+    this.toggleDisplayInteractWindow = this.toggleDisplayInteractWindow.bind(this);
 
     this.imgLoaderService = new ImgLoaderService();
     this.images = this.imgLoaderService.loadGameObjectImages();
@@ -31,6 +33,12 @@ export default class GameCanvas extends Component {
     this.setState({ isDisplayInterface });
   }
 
+  toggleDisplayInteractWindow(interactableObjectIds) {
+    const interactableObjects = this.gameObjects
+      .filter(x => interactableObjectIds.includes(x.id));
+    console.log(interactableObjectIds);
+  }
+
   buildGameComponents = (gameObjects) => {
     let id = 0;
     return gameObjects.map((gameObject) => {
@@ -39,6 +47,9 @@ export default class GameCanvas extends Component {
         return (
             <AnimatedGameObject
                 key={id++}
+                id={gameObject.id}
+                name={gameObject.name}
+                isInteractable={gameObject.isInteractable}
                 frameSize={gameObject.frameSize}
                 position={gameObject.position}
                 hFrames={gameObject.hFrames}
@@ -55,6 +66,9 @@ export default class GameCanvas extends Component {
         return (    
             <GameObject
                 key={id++}
+                id={gameObject.id}
+                name={gameObject.name}
+                isInteractable={gameObject.isInteractable}
                 frameSize={gameObject.frameSize}
                 position={gameObject.position}
                 hFrames={gameObject.hFrames}
@@ -70,7 +84,7 @@ export default class GameCanvas extends Component {
 
   render(){
     // сделать загрузку всех игровых объектов через .map в return()
-    const {isDisplayInterface, gameObjects, groundWalls, newGroundWidth} = this.state;
+    const {isDisplayInterface, isDisplayInteractWindow} = this.state;
 
 
     return (
@@ -80,7 +94,8 @@ export default class GameCanvas extends Component {
         }}>
           <Hero
             objects={[...this.gameObjects, ...this.groundWalls]}
-            toggleDisplayInterface={this.toggleDisplayInterface}/>
+            toggleDisplayInterface={this.toggleDisplayInterface}
+            toggleDisplayInteractWindow={this.toggleDisplayInteractWindow}/>
           
           {this.gameComponents}
 
@@ -89,6 +104,14 @@ export default class GameCanvas extends Component {
             style={
               {
                   visibility: isDisplayInterface ? 'visible' : 'hidden'
+              }}>
+          </div>
+
+          <div
+            className='interact-window'
+            style={
+              {
+                  visibility: isDisplayInteractWindow ? 'visible' : 'hidden'
               }}>
           </div>
       </div>

@@ -12,9 +12,12 @@ export default class AnimatedGameObject extends Component {
             vFrames: this.props.vFrames,
             frame: this.props.frame,
             scale: this.props.scale
-            });
+        });
 
         this.state = {
+            id: this.props.id,
+            name: this.props.name,
+            isInteractable: this.props.isInteractable,
             sprite: this.spriteService.getSprite(),
             position: this.props.position,
             image: this.props.image,
@@ -68,10 +71,13 @@ export default class AnimatedGameObject extends Component {
     };
 
     render() {
-        const { sprite, position, image } = this.state;
+        const { sprite, position, image, id, isInteractable, name } = this.state;
         return (
             <div className="animated-game-object">
                 <GameObject
+                    id={id}
+                    name={name}
+                    isInteractable={isInteractable}
                     frameSize={sprite.frameSize}
                     position={position}
                     hFrames={sprite.hFrames}

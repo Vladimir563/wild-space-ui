@@ -133,11 +133,28 @@ export default class Hero extends Component {
     toggleDisplayInterface(openEditor);
   };
 
+  handleInteractionWindow = (interactionWindowInfo) => {  
+    const {toggleDisplayInteractWindow} = this.props;
+    toggleDisplayInteractWindow(interactionWindowInfo);
+  };
+
   handleKeyDown(event) {
     const { key } = event;
     const { heroSprite, position } = this.state;
     const { objects } = this.props;
     const computer = objects.find(x => x.name === 'Computer');
+
+    const interactableObjects = objects
+      .filter(x => x.isInteractable)
+      .filter(x => this.engineService.couldInteractWith(heroSprite, position, x));
+
+    if(interactableObjects.length > 0){
+      const enableInteractWindowIds = interactableObjects.map(element => {
+        return element.id;
+      });
+
+      this.handleInteractionWindow(enableInteractWindowIds);
+    }
 
     if(key === 'e' && this.engineService.couldInteractWith(heroSprite, position, computer)){
       // открываем редактор кода

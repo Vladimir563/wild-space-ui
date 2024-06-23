@@ -13,3 +13,13 @@
     left: 126px;
     top: 20%;
 }
+
+.interact-window {
+    height: 20px;
+    width: 50px;
+    background-color: yellowgreen;
+    position: absolute;
+    z-index: 9;
+    left: 45%;
+    top: 35%;
+}

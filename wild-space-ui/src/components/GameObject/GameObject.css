@@ -2,3 +2,16 @@
     background-repeat: no-repeat;
     position: absolute;
 }
+
+.interactable-object {
+    font-size: 3px;
+    margin-top: -10px;
+    color: white;
+    text-align: center;
+    width: 20px;
+    font-weight: 600;
+}
+
+.non-interactable-object {
+    visibility: collapse;
+}

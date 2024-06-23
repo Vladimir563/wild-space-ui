@@ -3,7 +3,8 @@
 }
 
 body {
-    background-color: #333;
+    background-image: url("./assets/space-sky.png");
+    background-size: cover;
     padding: 0;
     margin: 0;
     overflow: hidden;
@@ -14,11 +15,7 @@ body {
     width: 352px;
     height: 198px;
     margin: 0 auto;
-    outline: 0.5px solid white;
     transform: scale(4) translateY(50%);
-    background-color: #00001F;
-    background-image: url("./assets/space-sky.png");
-    background-size: contain;
 }
 
 #root .game-canvas {
