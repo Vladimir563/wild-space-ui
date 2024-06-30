@@ -4,6 +4,7 @@ import { SpriteService, Vector2 } from '../../services/sprite-service';
 import { EngineService } from '../../services/engine-service';
 import { Arrows, RootFrames } from '../../services/constants';
 import SpaceHeroImage from '../../assets/astronaut-assets.png';
+import UIElement from '../../assets/e-letter.png'
 
 export default class Hero extends Component {
 
@@ -22,7 +23,8 @@ export default class Hero extends Component {
       position: { x: 150, y: 100 },
       speed: 3,
       walkingAnimationIndex: 0,
-      zIndex: 10
+      zIndex: 10,
+      showInteractField: false
     }
 
     this.engineService = new EngineService();
@@ -149,11 +151,19 @@ export default class Hero extends Component {
       .filter(x => this.engineService.couldInteractWith(heroSprite, position, x));
 
     if(interactableObjects.length > 0){
+      // доработать взаимодествие с объектами
       const enableInteractWindowIds = interactableObjects.map(element => {
         return element.id;
       });
 
       this.handleInteractionWindow(enableInteractWindowIds);
+
+      // скрытие поля "E"
+      this.setState({showInteractField: true});
+    }
+    else{
+      // отображение поля "E"
+      this.setState({showInteractField: false});
     }
 
     if(key === 'e' && this.engineService.couldInteractWith(heroSprite, position, computer)){
@@ -203,7 +213,7 @@ export default class Hero extends Component {
   }
 
   render() {
-    const { heroSprite, position, zIndex } = this.state;
+    const { heroSprite, position, zIndex, showInteractField } = this.state;
     const backgroundSize = heroSprite.frameSize.x * heroSprite.hFrames;
     const frameXPos = heroSprite.frameMap.get(heroSprite.frame).x;
     const frameYPos = heroSprite.frameMap.get(heroSprite.frame).y;
@@ -222,6 +232,9 @@ export default class Hero extends Component {
                 left: position.x,
                 zIndex: zIndex
             }}>
+        <div
+         className={ showInteractField ? 'interactable-field' : 'none-interactable-field' }
+         style={{backgroundImage: `url(${UIElement})`}}></div>
       </div>
       );
     };

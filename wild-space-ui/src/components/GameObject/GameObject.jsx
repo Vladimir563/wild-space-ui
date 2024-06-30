@@ -53,10 +53,8 @@ export default class GameObject extends Component {
                     left: position.x,
                     backgroundColor: bgColor
                 }}>
-            <div className={isInteractable ? 'interactable-object' : 'non-interactable-object' }>
+            <div className={isInteractable ? 'interactable-object' : 'none-interactable-object' }>
                 {`${this.state.name}`}
-                <br/>
-                'E' - действие
             </div>
         </div>
         );

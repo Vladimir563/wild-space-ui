@@ -2,3 +2,16 @@
     background-repeat: no-repeat;
     position: absolute;
 }
+
+.interactable-field{
+    visibility: visible;
+    width: 50%;
+    height: 50%;
+    background-repeat: no-repeat;
+    background-size: contain;
+    margin: -10px auto;
+}
+
+.none-interactable-field{
+    visibility: collapse;
+}
