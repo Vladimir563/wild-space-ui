@@ -71,6 +71,9 @@ export default class AnimatedGameObject extends Component {
     };
 
     render() {
+        const { enableAnimation } = this.state;
+        //console.log(enableAnimation);
+
         const { sprite, position, image, id, isInteractable, name } = this.state;
         return (
             <div className="animated-game-object">

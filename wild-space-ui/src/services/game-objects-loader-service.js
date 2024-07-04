@@ -3,8 +3,8 @@ import { Vector2 } from '../services/sprite-service';
 export class GameObjectsLoaderService {
     loadGameObjects = () => {
         const objs = [
-            { id: 0, position: new Vector2(200, 100), frameSize: new Vector2(70, 50), hFrames: 1, vFrames: 1, frame: 0, scale: 0.5, name: "Computer", isInteractable: true },
-            { id: 0, position: new Vector2(150, 30), frameSize: new Vector2(40, 40), hFrames: 11, vFrames: 1, frame: 0, scale: 0.7, animationInterval: 80, enableAnimation: true, name: "ClrPet", isInteractable: true }
+            { id: 0, position: new Vector2(200,70), frameSize: new Vector2(70, 50), hFrames: 1, vFrames: 1, frame: 0, scale: 0.5, name: "Computer", isInteractable: true },
+            { id: 0, position: new Vector2(150, 30), frameSize: new Vector2(40, 40), hFrames: 11, vFrames: 1, frame: 0, scale: 0.7, animationInterval: 80, name: "ClrPet", isInteractable: true }
         ];
 
         let id = 100;

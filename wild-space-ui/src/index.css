@@ -12,8 +12,6 @@ body {
 
 #root {
     position: relative;
-    width: 352px;
-    height: 198px;
     margin: 0 auto;
     transform: scale(4) translateY(50%);
 }

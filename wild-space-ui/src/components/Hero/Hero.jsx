@@ -8,8 +8,8 @@ import UIElement from '../../assets/e-letter.png'
 
 export default class Hero extends Component {
 
-  constructor(){
-    super();
+  constructor(props){
+    super(props);
     this.spriteService = new SpriteService({
       frameSize: new Vector2(60, 90),
       hFrames: 4,
@@ -20,7 +20,7 @@ export default class Hero extends Component {
 
     this.state = {
       heroSprite: this.spriteService.getSprite(),  
-      position: { x: 150, y: 100 },
+      position: { x: this.props.startPosX, y: this.props.startPosY },
       speed: 3,
       walkingAnimationIndex: 0,
       zIndex: 10,
@@ -49,6 +49,11 @@ export default class Hero extends Component {
   }
 
   startMovement = () => {
+    // если игра не на паузе - можем перемещать персонажа
+    if(this.props.isGameOnPause){
+      return;
+    }
+
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }
@@ -126,16 +131,19 @@ export default class Hero extends Component {
       if(allInteractableObjects.size > 0) {
         //console.log(allInteractableObjects);
       }
+
+      // перемещение камеры, для слежения за игроком
+      this.props.updateCameraPosition(position);
       
     }, this.interval);
   }
 
-  handleInteraction = (openEditor) => {  
+  handleInteraction = (openEditor) => {
     const {toggleDisplayInterface} = this.props;
     toggleDisplayInterface(openEditor);
   };
 
-  handleInteractionWindow = (interactionWindowInfo) => {  
+  handleInteractionWindow = (interactionWindowInfo) => {
     const {toggleDisplayInteractWindow} = this.props;
     toggleDisplayInteractWindow(interactionWindowInfo);
   };
@@ -145,6 +153,23 @@ export default class Hero extends Component {
     const { heroSprite, position } = this.state;
     const { objects } = this.props;
     const computer = objects.find(x => x.name === 'Computer');
+
+    const {updateGamePauseState} = this.props;
+    if(key === 'Escape'){
+      updateGamePauseState(false);
+      // закрываем редактор кода
+      this.handleInteraction(false);
+    }
+
+    if(this.props.isGameOnPause){
+      return;
+    }
+
+    if(key === 'e' && this.engineService.couldInteractWith(heroSprite, position, computer)){
+      // открываем редактор кода
+      updateGamePauseState(true);
+      this.handleInteraction(true);
+    }
 
     const interactableObjects = objects
       .filter(x => x.isInteractable)
@@ -166,16 +191,6 @@ export default class Hero extends Component {
       this.setState({showInteractField: false});
     }
 
-    if(key === 'e' && this.engineService.couldInteractWith(heroSprite, position, computer)){
-      // открываем редактор кода
-      this.handleInteraction(true);
-    }
-
-    if(key === 'Escape'){
-      // закрываем редактор кода
-      this.handleInteraction(false);
-    }
-
     const arrowPressed = Object.values(Arrows).includes(key);
 
     if (arrowPressed && !this.keysPressed[key]) {
@@ -185,6 +200,10 @@ export default class Hero extends Component {
   }
 
   handleKeyUp(event) {
+    if(this.props.isGameOnPause){
+      return;
+    }
+
     const { key } = event;
     const arrowPressed = Object.values(Arrows).includes(key);
 
