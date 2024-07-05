@@ -2,7 +2,7 @@ import { Component } from 'react';
 import './Hero.css';
 import { SpriteService, Vector2 } from '../../services/sprite-service';
 import { EngineService } from '../../services/engine-service';
-import { Arrows, RootFrames } from '../../services/constants';
+import { Arrows, RootFrames, KeyMappings } from '../../services/constants';
 import SpaceHeroImage from '../../assets/astronaut-assets.png';
 import UIElement from '../../assets/e-letter.png'
 
@@ -49,11 +49,6 @@ export default class Hero extends Component {
   }
 
   startMovement = () => {
-    // если игра не на паузе - можем перемещать персонажа
-    if(this.props.isGameOnPause){
-      return;
-    }
-
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }
@@ -61,6 +56,10 @@ export default class Hero extends Component {
     this.intervalId = setInterval(() => {
       const { heroSprite, position, speed, walkingAnimationIndex } = this.state;
       const { objects } = this.props;
+
+      if(this.props.isGameOnPause){
+        return;
+      }
 
       let newHeroSprite = { ...heroSprite };
       let newWalkingIndex = walkingAnimationIndex;
@@ -149,13 +148,13 @@ export default class Hero extends Component {
   };
 
   handleKeyDown(event) {
-    const { key } = event;
+    const { code } = event;
     const { heroSprite, position } = this.state;
     const { objects } = this.props;
     const computer = objects.find(x => x.name === 'Computer');
 
     const {updateGamePauseState} = this.props;
-    if(key === 'Escape'){
+    if(code === 'Escape'){
       updateGamePauseState(false);
       // закрываем редактор кода
       this.handleInteraction(false);
@@ -165,7 +164,7 @@ export default class Hero extends Component {
       return;
     }
 
-    if(key === 'e' && this.engineService.couldInteractWith(heroSprite, position, computer)){
+    if(code === 'KeyE' && this.engineService.couldInteractWith(heroSprite, position, computer)){
       // открываем редактор кода
       updateGamePauseState(true);
       this.handleInteraction(true);
@@ -180,7 +179,6 @@ export default class Hero extends Component {
       const enableInteractWindowIds = interactableObjects.map(element => {
         return element.id;
       });
-
       this.handleInteractionWindow(enableInteractWindowIds);
 
       // скрытие поля "E"
@@ -191,24 +189,22 @@ export default class Hero extends Component {
       this.setState({showInteractField: false});
     }
 
-    const arrowPressed = Object.values(Arrows).includes(key);
+    const mappedKey = KeyMappings[code];
+    const arrowPressed = mappedKey && Object.values(Arrows).includes(mappedKey);
 
-    if (arrowPressed && !this.keysPressed[key]) {
-      this.keysPressed[key] = true;
+    if (arrowPressed && !this.keysPressed[mappedKey]) {
+      this.keysPressed[mappedKey] = true;
       this.startMovement();
     }
   }
 
   handleKeyUp(event) {
-    if(this.props.isGameOnPause){
-      return;
-    }
-
-    const { key } = event;
-    const arrowPressed = Object.values(Arrows).includes(key);
+    const { code } = event;
+    const mappedKey = KeyMappings[code];
+    const arrowPressed = mappedKey && Object.values(Arrows).includes(mappedKey);
 
     if (arrowPressed) {
-      this.keysPressed[key] = false;
+      this.keysPressed[mappedKey] = false;
       const noneArrowsAreHeld = Object.values(Arrows).every(key => !this.keysPressed[key]);
       if (noneArrowsAreHeld) {
         clearInterval(this.intervalId);
@@ -217,10 +213,10 @@ export default class Hero extends Component {
   
         // Сбрасываем анимацию в Idle
         let idleFrame;
-        if (key === Arrows.UP) idleFrame = RootFrames.UP;
-        else if (key === Arrows.DOWN) idleFrame = RootFrames.DOWN;
-        else if (key === Arrows.LEFT) idleFrame = RootFrames.LEFT;
-        else if (key === Arrows.RIGHT) idleFrame = RootFrames.RIGHT;
+        if (mappedKey === Arrows.UP) idleFrame = RootFrames.UP;
+        else if (mappedKey === Arrows.DOWN) idleFrame = RootFrames.DOWN;
+        else if (mappedKey === Arrows.LEFT) idleFrame = RootFrames.LEFT;
+        else if (mappedKey === Arrows.RIGHT) idleFrame = RootFrames.RIGHT;
   
         const newHeroSprite = { ...this.state.heroSprite, frame: idleFrame };
         this.setState({ heroSprite: newHeroSprite });

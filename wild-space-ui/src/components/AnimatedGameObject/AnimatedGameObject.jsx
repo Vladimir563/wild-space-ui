@@ -35,10 +35,18 @@ export default class AnimatedGameObject extends Component {
         }
     }
 
-    componentWillUnmount() {
-        if (this.intervalId) {
-            clearInterval(this.intervalId);
+    componentDidUpdate(prevProps) {
+        if (this.props.enableAnimation !== prevProps.enableAnimation) {
+            if (this.props.enableAnimation) {
+                this.animateGameObject();
+            } else {
+                this.stopAnimation();
+            }
         }
+    }
+
+    componentWillUnmount() {
+        this.stopAnimation();
     }
 
     animateGameObject =() => {
@@ -49,6 +57,13 @@ export default class AnimatedGameObject extends Component {
         this.intervalId = setInterval(() => {
             this.updateFrame();
         }, this.interval);
+    }
+
+    stopAnimation = () => {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
     }
 
     updateFrame() {
@@ -71,9 +86,6 @@ export default class AnimatedGameObject extends Component {
     };
 
     render() {
-        const { enableAnimation } = this.state;
-        //console.log(enableAnimation);
-
         const { sprite, position, image, id, isInteractable, name } = this.state;
         return (
             <div className="animated-game-object">

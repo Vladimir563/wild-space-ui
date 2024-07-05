@@ -12,4 +12,15 @@ export const RootFrames = {
     UP: 12
 };
 
+export const KeyMappings = {
+    ArrowUp: 'ArrowUp',
+    ArrowDown: 'ArrowDown',
+    ArrowLeft: 'ArrowLeft',
+    ArrowRight: 'ArrowRight',
+    KeyW: 'ArrowUp',
+    KeyS: 'ArrowDown',
+    KeyA: 'ArrowLeft',
+    KeyD: 'ArrowRight',
+};
+
 export default Arrows;

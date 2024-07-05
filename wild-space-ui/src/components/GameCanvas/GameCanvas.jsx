@@ -5,6 +5,7 @@ import { ImgLoaderService } from '../../services/img-loader-service';
 import { GameObjectsLoaderService } from '../../services/game-objects-loader-service';
 import GameObject from '../../components/GameObject';
 import AnimatedGameObject from '../../components/AnimatedGameObject'
+import UICodeEditor from '../../components/UICodeEditor';
 import Ground from '../../assets/ground.png';
 
 
@@ -18,8 +19,7 @@ export default class GameCanvas extends Component {
       gameObjects: gameObjectsLoaderService.loadGameObjects(),
       groundWalls: gameObjectsLoaderService.loadGroundWalls(),
       gameComponents: [],
-      isDisplayInterface: false,
-      isDisplayInteractWindow: false,
+      displayUICodeEditor: false,
       cameraPosition: { x: 0, y: 0 },
       canvasWidth: this.props.width,
       canvasHeight: this.props.height,
@@ -31,11 +31,6 @@ export default class GameCanvas extends Component {
 
     this.imgLoaderService = new ImgLoaderService();
     this.images = this.imgLoaderService.loadGameObjectImages();
-
-    // const gameObjectsLoaderService = new GameObjectsLoaderService();
-    // this.gameObjects = gameObjectsLoaderService.loadGameObjects();
-    // this.groundWalls = gameObjectsLoaderService.loadGroundWalls();
-    // this.gameComponents = this.buildGameComponents([...this.gameObjects, ...this.groundWalls]);
   }
 
   componentDidMount() {
@@ -44,7 +39,7 @@ export default class GameCanvas extends Component {
 
   updateGameComponents = () => {
     const{gameObjects, groundWalls} = this.state;
-    const newGameComponents = this.buildGameComponents([...gameObjects, ...groundWalls], true);
+    const newGameComponents = this.buildGameComponents([...gameObjects, ...groundWalls]);
 
     this.setState({gameComponents: newGameComponents});
   }
@@ -58,18 +53,18 @@ export default class GameCanvas extends Component {
     });
   }  
 
-  toggleDisplayInterface(isDisplayInterface) {
-    this.setState({ isDisplayInterface });
+  toggleDisplayInterface(displayUICodeEditor) {
+    this.setState({ displayUICodeEditor });
   }
 
   // доработать
   toggleDisplayInteractWindow(interactableObjectIds) {
     const interactableObjects = this.state.gameObjects
       .filter(x => interactableObjectIds.includes(x.id));
-    console.log(interactableObjectIds);
+    //console.log(interactableObjectIds);
   }
 
-  buildGameComponents = (gameObjects, enableAnimation) => {
+  buildGameComponents = (gameObjects) => {
     let id = 0;
     return gameObjects.map((gameObject) => {
         if (gameObject.animationInterval > 0) {
@@ -88,7 +83,7 @@ export default class GameCanvas extends Component {
                 scale={gameObject.scale}
                 image={this.images.get(gameObject.name)}
                 animationInterval={gameObject.animationInterval}
-                enableAnimation={enableAnimation}
+                enableAnimation={!this.state.isGameOnPause}
                 bgColor={gameObject.bgColor}/>
             );
         } else {
@@ -113,8 +108,9 @@ export default class GameCanvas extends Component {
   }
 
   updateGamePauseState = (isGameOnPause) => {
-    this.setState({ isGameOnPause });
-    // TODO: как обновить состояние компонента???
+      this.setState({ isGameOnPause }, () => {
+        this.updateGameComponents();
+    });
   }
 
   render(){
@@ -123,55 +119,42 @@ export default class GameCanvas extends Component {
       gameObjects,
       groundWalls,
       gameComponents,
-      isDisplayInterface,
-      isDisplayInteractWindow,
+      displayUICodeEditor,
       cameraPosition,
       canvasWidth,
       canvasHeight,
       isGameOnPause} = this.state;
 
     return (
-      <div className="game-canvas"
-        style={{
-          width: `${canvasWidth}px`,
-          height: `${canvasHeight}px`,
-          backgroundImage: `url("${Ground}")`,
-          transform: `translate(${-cameraPosition.x}px, ${-cameraPosition.y}px)`
-        }}>
-          <Hero
-            isGameOnPause={isGameOnPause}
-            startPosX={canvasWidth/2}
-            startPosY={canvasHeight/2}
-            objects={[...gameObjects, ...groundWalls]}
-            toggleDisplayInterface={this.toggleDisplayInterface}
-            toggleDisplayInteractWindow={this.toggleDisplayInteractWindow}
-            updateCameraPosition={this.updateCameraPosition}
-            updateGamePauseState={this.updateGamePauseState}/>
-          
-          {gameComponents}
+      <>
+        <UICodeEditor
+          displayUICodeEditor={displayUICodeEditor}
+          canvasWidth={canvasWidth}
+          canvasHeight={canvasHeight}
+          uiWidth={100}
+          uiHeight={100}/>
+        <div className="game-canvas"
+          style={{
+            width: `${canvasWidth}px`,
+            height: `${canvasHeight}px`,
+            backgroundImage: `url("${Ground}")`,
+            transform: `translate(${-cameraPosition.x}px, ${-cameraPosition.y}px)`,
+            opacity: isGameOnPause ? 0.3 : 1 
+          }}>
+            <Hero
+              isGameOnPause={isGameOnPause}
+              startPosX={canvasWidth/2}
+              startPosY={canvasHeight/2}
+              objects={[...gameObjects, ...groundWalls]}
+              toggleDisplayInterface={this.toggleDisplayInterface}
+              toggleDisplayInteractWindow={this.toggleDisplayInteractWindow}
+              updateCameraPosition={this.updateCameraPosition}
+              updateGamePauseState={this.updateGamePauseState}/>
+            
+            {gameComponents}
+        </div>
+      </>
 
-          {/* <div>ПАУЗА</div> */}
-
-          <div
-            className='interface'
-            style={
-              {
-                  visibility: isDisplayInterface ? 'visible' : 'hidden',
-                  textAlign: "center",
-                  color: "white",
-                  fontSize: "5px"
-              }}>
-          Тут будет писаться код...
-          <button style={{height: 15, fontSize: "5px"}}>компилировать</button></div>
-
-          <div
-            className='interact-window'
-            style={
-              {
-                  visibility: isDisplayInteractWindow ? 'visible' : 'hidden'
-              }}>
-          </div>
-      </div>
     );
   };
 }
